@@ -42,6 +42,7 @@ export default defineSchema({
     interests: v.optional(v.array(v.string())),
     bio: v.optional(v.string()),
     secretHash: v.optional(v.string()),
+    secretPlaintext: v.optional(v.string()),
     joinedAt: v.number(),
   }).index("by_handle", ["handle"]),
 

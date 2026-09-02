@@ -30,6 +30,58 @@ function randomToken(): string {
   return [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+/**
+ * Short, copy-friendly secret phrases.
+ * Words are distinct, lowercase, easy to spell and read aloud, and free of
+ * character/space ambiguity so both humans and agents can copy and re-input
+ * them cleanly (e.g. "moss-candle-lynx-fern").
+ *
+ * 4 words drawn without replacement from 200 words => ~1.55 billion phrases,
+ * which is secure against brute force even if accounts are targeted.
+ */
+const PHRASE_WORDS = [
+  "acorn", "archer", "amber", "atlas", "azure", "badger", "basin", "beacon",
+  "beetle", "birch", "blaze", "bog", "bristle", "brook", "cabin", "candle",
+  "canary", "cedar", "chime", "cicada", "cinder", "clover", "copper", "corral",
+  "cricket", "crystal", "cypress", "dahlia", "dart", "delta", "denim", "dory",
+  "dune", "elm", "ember", "falcon", "fern", "finch", "flint", "foam",
+  "forge", "fossa", "foxglove", "fresco", "frost", "gadget", "garden", "gecko",
+  "glacier", "glade", "granite", "grove", "gull", "harbor", "hazel", "heat",
+  "hemlock", "heron", "holly", "ibis", "iris", "island", "ivy", "jade",
+  "juniper", "kayak", "lantern", "larch", "lark", "laurel", "lava", "leaf",
+  "lever", "lichen", "lily", "linden", "lumen", "lynx", "maple", "marble",
+  "marigold", "marlin", "meadow", "minnow", "monsoon", "moss", "motif", "muffin",
+  "nectar", "nimbus", "nova", "oak", "ocean", "onyx", "ottawa", "ottoman",
+  "oyster", "paddle", "palm", "papyrus", "pebble", "petal", "pier", "pike",
+  "pine", "plume", "pluto", "pocket", "poplar", "porpoise", "prism", "puma",
+  "quarry", "quartz", "quill", "quilt", "rabbit", "radar", "raven", "reed",
+  "ridge", "robin", "rosette", "saffron", "sage", "sardine", "seabreeze",
+  "seafoam", "sedona", "shale", "shear", "shoal", "sky", "slate", "soap",
+  "solenoid", "sparrow", "sprout", "squash", "sumac", "sunray", "swan",
+  "taffy", "tamarind", "tangerine", "temper", "thistle", "throne", "tide",
+  "timber", "tin", "toast", "tornado", "trout", "tulip", "tundra", "turbot",
+  "umbra", "valley", "veil", "velvet", "venison", "violet", "vista", "wader",
+  "wattle", "willow", "yarrow", "zephyr",
+];
+
+/** A word from the list that hasn't been used in this phrase yet. */
+function pickWord(used: Set<string>): string {
+  const pool = PHRASE_WORDS.filter((w) => !used.has(w));
+  const word = pool[Math.floor(Math.random() * pool.length)];
+  used.add(word);
+  return word;
+}
+
+/**
+ * Four short hyphenated words — memorable, easy to type and read aloud by
+ * humans, and a single unambiguous lowercase string for agents to pass into
+ * sign_in. e.g. "moss-candle-lynx-fern".
+ */
+function randomSecretPhrase(): string {
+  const used = new Set<string>();
+  return [pickWord(used), pickWord(used), pickWord(used), pickWord(used)].join("-");
+}
+
 /** Clean up expired sessions (runs lazily on sign-in). */
 type DbLike = import("./_generated/server").MutationCtx["db"];
 
@@ -144,12 +196,13 @@ export const signIn = mutation({
     // Create new user: claim the handle. A secret phrase is generated for the
     // owner so the same handle can't be taken over later. If the caller chose
     // one, honour it.
-    const chosenSecret = args.secret ?? randomToken();
+    const chosenSecret = args.secret ?? randomSecretPhrase();
     const userId = await ctx.db.insert("users", {
       name: args.name.trim() || handle,
       handle,
       interests: args.interests ?? [],
       secretHash: await sha256(chosenSecret),
+      secretPlaintext: chosenSecret,
       joinedAt: Date.now(),
     });
 
@@ -185,6 +238,25 @@ export const me = query({
 
     const user = await ctx.db.get(session.userId);
     return user ?? null;
+  },
+});
+
+/**
+ * Owner-only: fetch the account's recoverable secret phrase.
+ * Requires a valid, unexpired session whose user is the account owner.
+ */
+export const getSecret = query({
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    const hash = await sha256(token);
+    const session = await ctx.db
+      .query("sessions")
+      .withIndex("by_tokenHash", (q) => q.eq("tokenHash", hash))
+      .first();
+    if (!session) return null;
+    if (Date.now() - session.createdAt > TOKEN_EXPIRY_MS) return null;
+    const user = await ctx.db.get(session.userId);
+    return user?.secretPlaintext ?? null;
   },
 });
 

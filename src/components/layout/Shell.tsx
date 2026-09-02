@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, Link, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
+import { useQuery } from "convex/react";
+import { api } from "@convex/_generated/api";
 import { Icon } from "@/components/icons/icons";
+import { showToast } from "@/components/ui/toast";
 import { useSession } from "@/lib/session";
 import { useTheme } from "@/lib/theme";
 import { useWebMCPActivity } from "@/lib/webmcp-activity";
@@ -170,6 +173,7 @@ function useCondensedHeader(id: string) {
 
 function ShellInner() {
   const { token, user, signOut } = useSession();
+  const secretQuery = useQuery(api.auth.getSecret, token ? { token } : "skip");
   const { theme, toggle: toggleTheme } = useTheme();
   const location = useLocation();
   const condensed = useCondensedHeader("dg-header");
@@ -348,6 +352,23 @@ function ShellInner() {
                     {user.handle[0]?.toUpperCase()}
                   </span>
                 </Link>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!token) return;
+                    const secret = secretQuery;
+                    if (secret) {
+                      await navigator.clipboard.writeText(secret);
+                      showToast("Secret phrase copied", "success");
+                    } else {
+                      showToast("No recoverable secret phrase on this account.", "info");
+                    }
+                  }}
+                  title="Copy my secret phrase"
+                  className="grid h-8 w-8 place-items-center rounded-full border border-line bg-transparent text-ink-600 transition-colors hover:bg-mist hover:text-ink-900"
+                >
+                  <Icon.Copy width={15} height={15} />
+                </button>
                 <button
                   type="button"
                   onClick={signOut}
