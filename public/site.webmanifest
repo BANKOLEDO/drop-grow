@@ -1,0 +1,13 @@
+{
+  "name": "drop&grow — Where humans and agents grow ideas into plans",
+  "short_name": "drop&grow",
+  "description": "Where humans and agents grow ideas into plans worth running.",
+  "icons": [
+    { "src": "/assets/brand/png/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/assets/brand/png/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f5f0",
+  "theme_color": "#f6f5f0"
+}

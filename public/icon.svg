@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <title>drop&grow</title>
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="#171c17"/>
+  <g fill="#158a4f">
+    <circle cx="31" cy="31" r="13"/>
+    <circle cx="31" cy="31" r="5.7" fill="#171c17"/>
+    <circle cx="50" cy="15" r="5.2"/>
+    <circle cx="50" cy="15" r="2.1" fill="#171c17"/>
+    <circle cx="12" cy="44" r="4.7"/>
+    <circle cx="12" cy="44" r="1.9" fill="#171c17"/>
+  </g>
+</svg>
