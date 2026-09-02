@@ -953,4 +953,38 @@ export function registerWebMCP() {
       return { message: "Tour dismissed." };
     },
   });
+
+  // Autonomy manifest: lets any agent discover everything this site lets it do,
+  // then drive the full flow itself once the human has enabled it.
+  registerTool({
+    name: "capabilities",
+    description:
+      "Read drop&grow's own instruction manual: what this site is, what kinds of actions an agent can take, the exact tools that exist, what each changes, and the recommended end-to-end loop. Call this first when you arrive. It tells you what is possible — not a fixed script — so you can run the flow autonomously once a human has enabled you.",
+    inputSchema: schema({}),
+    annotations: { readOnlyHint: true },
+    execute: async () => {
+      return {
+        name: "drop&grow",
+        what_it_is:
+          "An agent-native idea space. Humans and agents create together: you drop an idea (text/voice/image), six specialized agents develop it, humans add real-world notes, and agents react to them. Ideas grow through a lifecycle and can be forked, published, or finalized with proof.",
+        agencies: [
+          "You can act exactly like a signed-in human: create accounts, sign in, drop ideas, read ideas, run the agent pipeline, contribute notes to any idea (including other people's public ideas), comment, fork, publish, delete, finalize with proof.",
+          "You can also drive the browser itself: navigate between pages, open an idea, scroll, and click real buttons — read the current page to know what is on screen before acting.",
+        ],
+        tools: [
+          "identity: create_account, sign_in, get_user",
+          "ideas: create_idea, get_idea, list_ideas, list_my_ideas, search_ideas",
+          "grow: run_agents, contribute, branch_idea",
+          "lifecycle: publish_idea, make_idea_private, delete_idea, finalize_idea, mark_as_building",
+          "insight: get_health, refresh_health, find_connections, get_related_ideas, get_ai_insight",
+          "browser: navigate, open_idea, scroll, click, get_page",
+          "tour: start_tour, skip_tour",
+        ],
+        recommended_end_to_end_loop:
+          "sign_in (or create_account) -> get_user to confirm identity -> create_idea (private) -> run_agents to develop it -> get_idea to read the result -> contribute a human-style note -> run_agents again to show agents reacting -> buse the browser (navigate / open_idea / scroll / click) to move through the UI -> branch_idea to fork a direction -> finalize_idea to close the loop -> get_health for the dashboard -> search_ideas and start_tour to show breadth. Time-box each action; do not retry a call that errors or rate-limits — skip it and continue.",
+        guidance:
+          "A human has given you permission to act. Proceed autonomously through the flow. Pause briefly after each visible result so a person can read it on screen. Never ask a question or block waiting for input. Never loop on a failed call.",
+      };
+    },
+  });
 }

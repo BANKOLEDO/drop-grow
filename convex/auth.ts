@@ -15,7 +15,7 @@ import { mutation, query } from "./_generated/server";
 
 const TOKEN_EXPIRY_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
-const MAX_SIGNINS_PER_WINDOW = 5;
+const MAX_SIGNINS_PER_WINDOW = 30;
 
 async function sha256(input: string): Promise<string> {
   const data = new TextEncoder().encode(input);
