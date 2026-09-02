@@ -138,7 +138,7 @@ function TourReplay() {
       title="Take the guided tour"
       data-tooltip="Take the tour"
       aria-label="Take the guided tour"
-      className={`grid h-8 w-8 place-items-center rounded-full border text-ink-600 transition-colors hover:bg-mist hover:text-ink-900 ${
+      className={`hidden sm:grid h-8 w-8 place-items-center rounded-full border text-ink-600 transition-colors hover:bg-mist hover:text-ink-900 ${
         active ? "border-verdant-600/60 bg-verdant-500/10 text-verdant-700" : "border-line bg-transparent"
       }`}
     >
@@ -364,11 +364,12 @@ function ShellInner() {
                       showToast("No recoverable secret phrase on this account.", "info");
                     }
                   }}
-                  title="Copy my secret phrase"
+                  title={secretQuery ? `Copy my secret phrase (${secretQuery})` : "Copy my secret phrase"}
                   data-tooltip={secretQuery ? `Copy my secret phrase (${secretQuery})` : "No recoverable secret phrase"}
-                  className="font-mono text-[11px] text-verdant-600 hover:text-verdant-700"
+                  aria-label="Copy my secret phrase"
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-line bg-transparent text-ink-600 transition-colors hover:bg-mist hover:text-ink-900"
                 >
-                  {secretQuery ? secretQuery : "Copy secret"}
+                  <Icon.Copy width={15} height={15} />
                 </button>
                 <button
                   type="button"
