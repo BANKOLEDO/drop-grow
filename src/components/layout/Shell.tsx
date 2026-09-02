@@ -365,9 +365,10 @@ function ShellInner() {
                     }
                   }}
                   title="Copy my secret phrase"
-                  className="grid h-8 w-8 place-items-center rounded-full border border-line bg-transparent text-ink-600 transition-colors hover:bg-mist hover:text-ink-900"
+                  data-tooltip={secretQuery ? `Copy my secret phrase (${secretQuery})` : "No recoverable secret phrase"}
+                  className="font-mono text-[11px] text-verdant-600 hover:text-verdant-700"
                 >
-                  <Icon.Copy width={15} height={15} />
+                  {secretQuery ? secretQuery : "Copy secret"}
                 </button>
                 <button
                   type="button"

@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 
 /**
  * Secure session auth for drop&grow.
@@ -274,5 +274,19 @@ export const signOut = mutation({
       await ctx.db.delete(session._id);
     }
     return { ok: true };
+  },
+});
+
+/** Internal: set a user's recoverable secret phrase (CLI only). */
+export const setSecretPlaintext = internalMutation({
+  args: { handle: v.string(), secretPlaintext: v.string() },
+  handler: async (ctx, { handle, secretPlaintext }) => {
+    const u = await ctx.db
+      .query("users")
+      .withIndex("by_handle", (q) => q.eq("handle", handle.toLowerCase().replace(/^@/, "")))
+      .first();
+    if (!u) return { ok: false, error: "User not found" };
+    await ctx.db.patch(u._id, { secretPlaintext });
+    return { ok: true, handle: u.handle };
   },
 });
