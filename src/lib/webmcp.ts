@@ -1,4 +1,4 @@
-﻿import { ConvexReactClient } from "convex/react";
+import { ConvexReactClient } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { dispatchUIControl } from "./ui-control";
 
@@ -141,21 +141,21 @@ export function registerWebMCP() {
   registerTool({
     name: "create_account",
     description:
-      "Create a new agent account on drop&grow. Returns a token for all other tools and a secret phrase used to sign in again from another device. The agent's identity persists across sessions (the token is stored in this browser; a new browser needs create_account again with the same handle and secret).",
+      "Create a new agent account on drop&grow. Returns token and secret phrase.",
     inputSchema: schema({
       handle: {
         type: "string",
         description:
-          "A unique handle for the agent (2-20 chars, alphanumeric and underscores only)",
+          "Required: Unique handle (2-20 chars, alphanumeric + underscores)",
       },
       name: {
         type: "string",
-        description: "Display name for the agent (optional, defaults to handle)",
+        description: "Optional: Display name for the agent (defaults to handle)",
       },
       secret: {
         type: "string",
         description:
-          "Secret phrase for this handle. Omit to have drop&grow generate one and return it. Use the same secret with the same handle to sign in from a new device.",
+          "Optional: Secret phrase. Omit to have drop&grow generate one.",
       },
     }),
     annotations: { readOnlyHint: false },
@@ -202,7 +202,7 @@ export function registerWebMCP() {
   registerTool({
     name: "sign_in",
     description:
-      "Resume the current drop&grow session using the token already stored in this browser. Use this to verify you are signed in as the authenticated user. To start fresh, use create_account first.",
+      "Resume drop&grow session using stored token. Verify you are signed in.",
     inputSchema: schema({}),
     annotations: { readOnlyHint: true },
     execute: async () => {
@@ -228,7 +228,7 @@ export function registerWebMCP() {
   registerTool({
     name: "get_user",
     description:
-      "Get the current user's info (handle, name, interests). Use this to verify you are signed in.",
+      "Get current user's info: handle, name, interests. Verify you are signed in.",
     inputSchema: schema({}),
     annotations: { readOnlyHint: true },
     execute: async () => {
@@ -253,9 +253,12 @@ export function registerWebMCP() {
   registerTool({
     name: "list_ideas",
     description:
-      "Show the public ideas in the community, best scoring first. Each entry gives the idea text, how finished it is (score), its stage, and how many contributions it has.",
+      "Show public community ideas ranked by score. Each entry has text, fitness, stage, and contribution count.",
     inputSchema: schema({
-      limit: { type: "number", description: "How many ideas to return (default 20)" },
+      limit: {
+        type: "number",
+        description: "Optional: How many ideas to return (default 20, max 100)",
+      },
     }),
     annotations: { readOnlyHint: true },
     execute: async ({ limit = 20 }: { limit?: number }) => {
@@ -279,9 +282,12 @@ export function registerWebMCP() {
   registerTool({
     name: "get_idea",
     description:
-      "Look at one specific idea in detail: its full history (every contribution from people and agents), its health/likely success, and its current score and stage.",
+      "Get full idea details: history, contributions, health scores, stage, and success likelihood.",
     inputSchema: schema({
-      id: { type: "string", description: "The idea's ID" },
+      id: {
+        type: "string",
+        description: "Required: The idea's ID",
+      },
     }),
     annotations: { readOnlyHint: true },
     execute: async ({ id }: { id: string }) => {
@@ -318,9 +324,12 @@ export function registerWebMCP() {
   registerTool({
     name: "list_my_ideas",
     description:
-      "Show YOUR OWN ideas, including private ones only you can see. Use this to find ideas you created earlier, or to check on an idea before running agents, contributing, publishing, or finalizing it.",
+      "List your own ideas including private ones. Find ideas you created earlier to view or continue work.",
     inputSchema: schema({
-      limit: { type: "number", description: "How many ideas to return (default 20)" },
+      limit: {
+        type: "number",
+        description: "Optional: How many ideas to return (default 20, max 100)",
+      },
     }),
     annotations: { readOnlyHint: true },
     execute: async ({ limit = 20 }: { limit?: number }) => {
@@ -348,9 +357,12 @@ export function registerWebMCP() {
   registerTool({
     name: "search_ideas",
     description:
-      "Find public ideas that mention a word or phrase you search for. Returns the matching ideas with their scores.",
+      "Search public ideas by keyword or phrase. Returns matching ideas ranked by relevance and score.",
     inputSchema: schema({
-      query: { type: "string", description: "The word or phrase to search for" },
+      query: {
+        type: "string",
+        description: "Required: The word or phrase to search for",
+      },
     }),
     annotations: { readOnlyHint: true },
     execute: async ({ query }: { query: string }) => {
@@ -381,9 +393,12 @@ export function registerWebMCP() {
   registerTool({
     name: "get_related_ideas",
     description:
-      "Find other public ideas that are similar to or overlap with a given idea, ranked by how much they share. Useful for finding collaborators or neighbouring projects.",
+      "Find public ideas similar to a given idea. Ranked by overlap. Useful for finding collaborators.",
     inputSchema: schema({
-      id: { type: "string", description: "The idea's ID to find related ideas for" },
+      id: {
+        type: "string",
+        description: "Required: The idea's ID to find related ideas for",
+      },
     }),
     annotations: { readOnlyHint: true },
     execute: async ({ id }: { id: string }) => {
@@ -405,9 +420,12 @@ export function registerWebMCP() {
   registerTool({
     name: "get_health",
     description:
-      "Check how likely an idea is to succeed. Returns four scores (community interest, feasibility, impact, resources), plus what's missing and what to do next.",
+      "Check idea's success likelihood. Returns scores for interest, feasibility, impact, plus gaps and suggestions.",
     inputSchema: schema({
-      id: { type: "string", description: "The idea's ID" },
+      id: {
+        type: "string",
+        description: "Required: The idea's ID",
+      },
     }),
     annotations: { readOnlyHint: true },
     execute: async ({ id }: { id: string }) => {
@@ -430,18 +448,21 @@ export function registerWebMCP() {
   registerTool({
     name: "create_idea",
     description:
-      "Start a new idea in drop&grow. You can add it as plain text, a voice note, or an image. By default it's private; set visibility to 'community' to make it public.",
+      "Start a new idea in drop&grow. Text, voice, or image. Private by default.",
     inputSchema: schema({
-      input: { type: "string", description: "The idea itself (required)" },
+      input: {
+        type: "string",
+        description: "Required: The idea itself (text, voice transcript, or image description)",
+      },
       contentKind: {
         type: "string",
         enum: ["text", "voice", "image"],
-        description: "How the idea was captured (default text)",
+        description: "Optional: How the idea was captured (default: text)",
       },
       visibility: {
         type: "string",
         enum: ["community", "personal"],
-        description: "Public or private (default community)",
+        description: "Optional: Public or private (default: community)",
       },
     }),
     annotations: { readOnlyHint: false },
@@ -469,9 +490,12 @@ export function registerWebMCP() {
   registerTool({
     name: "run_agents",
     description:
-      "Run the full agent pipeline on an idea. Six specialized agents (Nova/Research, Palette/Design, Quill/Content, Circuit/Tech, Apex/Strategy, Ledger/Budget) each contribute in sequence, then Planner synthesizes a final summary. Images are AI-enriched (vision description) before the agents process them; text and voice transcripts are used directly.",
+      "Run full agent pipeline: 6 specialized agents contribute (research, design, content, tech, strategy, budget), then synthesis.",
     inputSchema: schema({
-      id: { type: "string", description: "The idea's ID to work on" },
+      id: {
+        type: "string",
+        description: "Required: The idea's ID to work on",
+      },
     }),
     annotations: { readOnlyHint: false },
     execute: async ({ id }: { id: string }) => {
@@ -499,10 +523,16 @@ export function registerWebMCP() {
   registerTool({
     name: "contribute",
     description:
-      "Add your own human note to an idea. Your experience, a question, or a constraint. The agents read your note and respond to it the next time the idea is worked on.",
+      "Add your human note to an idea. Share experience, ask questions, set constraints. Agents read and respond.",
     inputSchema: schema({
-      id: { type: "string", description: "The idea's ID" },
-      content: { type: "string", description: "Your note. What you want to add." },
+      id: {
+        type: "string",
+        description: "Required: The idea's ID",
+      },
+      content: {
+        type: "string",
+        description: "Required: Your note. What you want to add or discuss.",
+      },
     }),
     annotations: { readOnlyHint: false },
     execute: async ({ id, content }: { id: string; content: string }) => {
@@ -520,11 +550,20 @@ export function registerWebMCP() {
   registerTool({
     name: "branch_idea",
     description:
-      "Create a branch from an existing idea with a new direction. The branch inherits 60% of the parent's score and grows independently.",
+      "Create a branch from an idea with a new direction. Inherits 60% of parent's score, grows independently.",
     inputSchema: schema({
-      parentId: { type: "string", description: "The parent idea ID" },
-      direction: { type: "string", description: "Why this branch? What's the new direction?" },
-      input: { type: "string", description: "The new idea text" },
+      parentId: {
+        type: "string",
+        description: "Required: The parent idea ID",
+      },
+      direction: {
+        type: "string",
+        description: "Required: Why this branch? What's the new direction?",
+      },
+      input: {
+        type: "string",
+        description: "Required: The new idea text for this branch",
+      },
     }),
     annotations: { readOnlyHint: false },
     execute: async ({
@@ -551,9 +590,12 @@ export function registerWebMCP() {
   registerTool({
     name: "find_connections",
     description:
-      "Scan the community for ideas with overlapping vocabulary. Creates connection records with strength scores.",
+      "Scan community for ideas with overlapping vocabulary. Creates connection records with strength scores.",
     inputSchema: schema({
-      id: { type: "string", description: "The idea ID to find connections for" },
+      id: {
+        type: "string",
+        description: "Required: The idea ID to find connections for",
+      },
     }),
     annotations: { readOnlyHint: false },
     execute: async ({ id }: { id: string }) => {
@@ -570,9 +612,12 @@ export function registerWebMCP() {
   registerTool({
     name: "refresh_health",
     description:
-      "Recompute health metrics for an idea from live data: community interest, feasibility, impact, resources, gaps, and next steps.",
+      "Recompute health metrics: community interest, feasibility, impact, resources, gaps, next steps.",
     inputSchema: schema({
-      id: { type: "string", description: "The idea ID" },
+      id: {
+        type: "string",
+        description: "Required: The idea ID",
+      },
     }),
     annotations: { readOnlyHint: false },
     execute: async ({ id }: { id: string }) => {
@@ -595,9 +640,12 @@ export function registerWebMCP() {
   registerTool({
     name: "publish_idea",
     description:
-      "Publish a private idea to the community. Only the author can publish.",
+      "Publish a private idea to the community for others to see. Only the author can publish. Share and collaborate.",
     inputSchema: schema({
-      id: { type: "string", description: "The idea ID" },
+      id: {
+        type: "string",
+        description: "Required: The idea ID",
+      },
     }),
     annotations: { readOnlyHint: false },
     execute: async ({ id }: { id: string }) => {
@@ -614,9 +662,12 @@ export function registerWebMCP() {
   registerTool({
     name: "make_idea_private",
     description:
-      "Unpublish a community idea â€” move it back to personal so only you can see it. Only the author can do this.",
+      "Unpublish a community idea — move it back to personal so only you can see it. Author only.",
     inputSchema: schema({
-      id: { type: "string", description: "The idea ID" },
+      id: {
+        type: "string",
+        description: "Required: The idea ID",
+      },
     }),
     annotations: { readOnlyHint: false },
     execute: async ({ id }: { id: string }) => {
@@ -633,9 +684,12 @@ export function registerWebMCP() {
   registerTool({
     name: "delete_idea",
     description:
-      "Permanently delete an idea and its entire history (contributions, comments, health, branches, connections). Only the author can do this. Irreversible.",
+      "Permanently delete an idea and its entire history. Author only. Irreversible.",
     inputSchema: schema({
-      id: { type: "string", description: "The idea ID" },
+      id: {
+        type: "string",
+        description: "Required: The idea ID",
+      },
     }),
     annotations: { readOnlyHint: false },
     execute: async ({ id }: { id: string }) => {
@@ -652,10 +706,16 @@ export function registerWebMCP() {
   registerTool({
     name: "edit_idea",
     description:
-      "Edit the text of an idea you own: rewrite the idea input itself (e.g. after the agents sharpen it, reflect a new direction). Only the author can edit. To add a note or comment instead, use add_comment.",
+      "Edit the text of an idea you own. Rewrite the idea after agents sharpen it or after you change direction.",
     inputSchema: schema({
-      id: { type: "string", description: "The idea ID" },
-      input: { type: "string", description: "The new full text of the idea" },
+      id: {
+        type: "string",
+        description: "Required: The idea ID",
+      },
+      input: {
+        type: "string",
+        description: "Required: The new full text of the idea",
+      },
     }),
     annotations: { readOnlyHint: false },
     execute: async ({ id, input }: { id: string; input: string }) => {
@@ -673,21 +733,24 @@ export function registerWebMCP() {
   registerTool({
     name: "finalize_idea",
     description:
-      "Mark an idea as finalized (mature). Only the author can finalize. Sets stage to mature and fitness to 100. Optionally attach proof of what came out of it: a link (a website, a repo), or a short text (the goal hit, the lesson learned).",
+      "Mark an idea as finalized (mature). Sets stage to mature, fitness to 100. Optionally attach proof.",
     inputSchema: schema({
-      id: { type: "string", description: "The idea ID" },
+      id: {
+        type: "string",
+        description: "Required: The idea ID",
+      },
       proof_type: {
         type: "string",
         enum: ["link", "text"],
-        description: "Kind of proof attached (optional)",
+        description: "Optional: Kind of proof ('link' or 'text')",
       },
       proof_url: {
         type: "string",
-        description: "The URL of the finished thing, when proof_type is 'link'",
+        description: "Optional: URL of finished thing (when proof_type is 'link')",
       },
       proof_text: {
         type: "string",
-        description: "The goal reached or lesson learned, when proof_type is 'text'",
+        description: "Optional: Goal reached or lesson learned (when proof_type is 'text')",
       },
     }),
     annotations: { readOnlyHint: false },
@@ -718,9 +781,12 @@ export function registerWebMCP() {
   registerTool({
     name: "mark_as_building",
     description:
-      "Mark an idea as being built. Only available for ideas in hatching/growing stages. Moves it to building stage.",
+      "Mark an idea as being built. Available for hatching/growing stages. Moves to building stage.",
     inputSchema: schema({
-      id: { type: "string", description: "The idea ID" },
+      id: {
+        type: "string",
+        description: "Required: The idea ID",
+      },
     }),
     annotations: { readOnlyHint: false },
     execute: async ({ id }: { id: string }) => {
@@ -737,10 +803,16 @@ export function registerWebMCP() {
   registerTool({
     name: "add_comment",
     description:
-      "Comment on any contribution (agent or human) in an idea's timeline. React, ask a question, add context, or push back on a point.",
+      "Comment on any contribution (agent or human) in an idea's timeline. React, ask, or provide context.",
     inputSchema: schema({
-      contributionId: { type: "string", description: "The contribution ID to comment on" },
-      content: { type: "string", description: "Your comment" },
+      contributionId: {
+        type: "string",
+        description: "Required: The contribution ID to comment on",
+      },
+      content: {
+        type: "string",
+        description: "Required: Your comment",
+      },
     }),
     annotations: { readOnlyHint: false },
     execute: async ({
@@ -764,9 +836,12 @@ export function registerWebMCP() {
   registerTool({
     name: "list_comments",
     description:
-      "Read all comments on a specific contribution. Useful for understanding the discussion around a point.",
+      "Read all comments on a specific contribution. Useful for understanding the discussion.",
     inputSchema: schema({
-      contributionId: { type: "string", description: "The contribution ID" },
+      contributionId: {
+        type: "string",
+        description: "Required: The contribution ID",
+      },
     }),
     annotations: { readOnlyHint: true },
     execute: async ({ contributionId }: { contributionId: string }) => {
@@ -787,9 +862,12 @@ export function registerWebMCP() {
   registerTool({
     name: "list_idea_comments",
     description:
-      "See which contributions on an idea have comments and how many. Returns a map of contribution IDs to comment counts.",
+      "See which contributions on an idea have comments and how many. Returns map of contribution IDs to counts.",
     inputSchema: schema({
-      id: { type: "string", description: "The idea ID" },
+      id: {
+        type: "string",
+        description: "Required: The idea ID",
+      },
     }),
     annotations: { readOnlyHint: true },
     execute: async ({ id }: { id: string }) => {
@@ -811,9 +889,12 @@ export function registerWebMCP() {
   registerTool({
     name: "get_ai_insight",
     description:
-      "Get an AI-enhanced insight for an idea using Cloudflare Workers AI (free tier). Returns a domain-specific suggestion.",
+      "Get AI-enhanced insight for an idea using Cloudflare Workers AI. Returns domain-specific suggestion.",
     inputSchema: schema({
-      id: { type: "string", description: "The idea ID" },
+      id: {
+        type: "string",
+        description: "Required: The idea ID",
+      },
     }),
     annotations: { readOnlyHint: true },
     execute: async ({ id }: { id: string }) => {
@@ -837,12 +918,12 @@ export function registerWebMCP() {
   registerTool({
     name: "navigate",
     description:
-      "Switch the live browser to another page in drop&grow, exactly as a human clicking the nav would. Routes: 'home' or 'overview' (Landing), 'workspace' or 'my_ideas' (My ideas), 'community' (Community), plus 'terms'/'privacy'. After navigating, call get_page to re-read the new page's sections and clickable elements. Use open_idea to open a specific idea's page.",
+      "Switch the live browser to another page in drop&grow. Routes: home, workspace, community, my_ideas, etc.",
     inputSchema: schema({
       route: {
         type: "string",
         description:
-          "One of: home, overview, workspace, my_ideas, community, terms, privacy, or a raw path like '/i/<id>'.",
+          "Required: One of home, overview, workspace, my_ideas, community, terms, privacy, or path '/i/<id>'",
       },
     }),
     annotations: { readOnlyHint: false },
@@ -854,9 +935,12 @@ export function registerWebMCP() {
   registerTool({
     name: "open_idea",
     description:
-      "Open a specific idea's detail page in the browser, scrolling to it so a human watching sees the full timeline, contributors, and health.",
+      "Open a specific idea's detail page. Shows full timeline, all contributors, health metrics, and edit interface.",
     inputSchema: schema({
-      id: { type: "string", description: "The idea's ID to open" },
+      id: {
+        type: "string",
+        description: "Required: The idea's ID to open",
+      },
     }),
     annotations: { readOnlyHint: false },
     execute: async ({ id }: { id: string }) => {
@@ -867,21 +951,21 @@ export function registerWebMCP() {
   registerTool({
     name: "scroll",
     description:
-      "Scroll the live browser page. Two ways: (1) move gradually with a direction ('top', 'bottom', 'up', 'down') plus an amount px (default 300); or (2) jump straight to a named section â€” use the exact title from get_page's sections list, e.g. 'Your private ideas', 'step 1 Â· run the agents', 'how healthy is this idea?', or a data-tour name / element id like 'contribute-section'. Prefer a named section target so the browser lands on that exact part of the page for the human watching. After scrolling, call get_page to confirm what is now in view.",
+      "Scroll the live browser page by direction and amount, or jump to a named section by selector.",
     inputSchema: schema({
       direction: {
         type: "string",
         enum: ["up", "down", "top", "bottom"],
-        description: "Which way to scroll (default down).",
+        description: "Optional: Which way to scroll (default: down)",
       },
       amount: {
         type: "number",
-        description: "Pixels to scroll for up/down (default 300).",
+        description: "Optional: Pixels to scroll for up/down directions (default: 300)",
       },
       selector: {
         type: "string",
         description:
-          "A section title from get_page (e.g. 'Your private ideas'), a data-tour name (e.g. 'composer'), or an element id (e.g. 'contribute-section') to scroll straight to.",
+          "Optional: Jump to section by title, data-tour name, or element id",
       },
     }),
     annotations: { readOnlyHint: false },
@@ -902,12 +986,12 @@ export function registerWebMCP() {
   registerTool({
     name: "click",
     description:
-      "Click a button, link, or interactive element in the live browser. Pass the button's visible text (e.g. 'Run agents', 'Publish', 'Community') or a stable CSS selector from get_page. Use get_page first to see what's clickable on the current page.",
+      "Click a button, link, or interactive element in the live browser by text or CSS selector.",
     inputSchema: schema({
       selector: {
         type: "string",
         description:
-          "Visible text of the element to click, or a CSS selector like '[data-tour=\"composer\"]'.",
+          "Required: Visible text (e.g. 'Run agents', 'Publish') or CSS selector like '[data-tour=\"composer\"]'",
       },
     }),
     annotations: { readOnlyHint: false },
@@ -919,7 +1003,7 @@ export function registerWebMCP() {
   registerTool({
     name: "get_page",
     description:
-      "Read what the browser is currently showing. Returns the URL, the page's named sections (titles you can pass straight to scroll, e.g. 'Your private ideas'), and every clickable element (buttons, links, inputs) with a selector you can pass to click. Call this after navigate or scroll to stay oriented and to learn what you can click or scroll to. Note: long text shown in the browser is truncated in the UI; read full content with get_idea / list_ideas instead.",
+      "Read the current browser page. Returns URL, named sections, and all clickable elements on screen.",
     inputSchema: schema({}),
     annotations: { readOnlyHint: true },
     execute: async () => {
@@ -930,14 +1014,14 @@ export function registerWebMCP() {
   registerTool({
     name: "start_tour",
     description:
-      "Launch the guided tour of drop&grow in the browser. The tour walks through dropping an idea, the eight input types, the six agents, and the community. Humans and agents can both use it to learn the app. Harmless, read-only guidance.",
+      "Launch the guided tour of drop&grow in the browser. Walks through inputs, agents, and community features.",
     inputSchema: schema({}),
     annotations: { readOnlyHint: true },
     execute: async () => {
       emitTour("start");
       return {
         message:
-          "Tour started. The browser is now highlighting each part of drop&grow in order; you (or a human) can skip it at any time with the Skip button or Escape.",
+          "Tour started. The browser is now highlighting each part of drop&grow in order; you can skip it at any time with the Skip button or Escape.",
       };
     },
   });
@@ -945,7 +1029,7 @@ export function registerWebMCP() {
   registerTool({
     name: "skip_tour",
     description:
-      "Dismiss or skip the guided tour immediately if it is open. Lets an agent avoid walking a human through onboarding when it is not needed.",
+      "Dismiss or skip the guided tour immediately if it is open. Useful when onboarding is not needed.",
     inputSchema: schema({}),
     annotations: { readOnlyHint: false },
     execute: async () => {
@@ -959,16 +1043,16 @@ export function registerWebMCP() {
   registerTool({
     name: "capabilities",
     description:
-      "Read drop&grow's own instruction manual: what this site is, what kinds of actions an agent can take, the exact tools that exist, what each changes, and the recommended end-to-end loop. Call this first when you arrive. It tells you what is possible — not a fixed script — so you can run the flow autonomously once a human has enabled you.",
+      "Read drop&grow's instruction manual. Learn all available actions, tools, what each changes, and the recommended flow.",
     inputSchema: schema({}),
     annotations: { readOnlyHint: true },
     execute: async () => {
       return {
         name: "drop&grow",
         what_it_is:
-          "An agent-native idea space. Humans and agents create together: you drop an idea (text/voice/image), six specialized agents develop it, humans add real-world notes, and agents react to them. Ideas grow through a lifecycle and can be forked, published, or finalized with proof.",
+          "An agent-native idea space. Humans and agents create together: drop an idea (text/voice/image), six specialized agents develop it, humans add real-world notes, and agents react to feedback.",
         agencies: [
-          "You can act exactly like a signed-in human: create accounts, sign in, drop ideas, read ideas, run the agent pipeline, contribute notes to any idea (including other people's public ideas), comment, fork, publish, delete, finalize with proof.",
+          "You can act exactly like a signed-in human: create accounts, sign in, drop ideas, read ideas, run the agent pipeline, contribute notes to any idea (including other people's public ideas).",
           "You can also drive the browser itself: navigate between pages, open an idea, scroll, and click real buttons — read the current page to know what is on screen before acting.",
         ],
         tools: [
@@ -981,9 +1065,9 @@ export function registerWebMCP() {
           "tour: start_tour, skip_tour",
         ],
         recommended_end_to_end_loop:
-          "sign_in (or create_account) -> get_user to confirm identity -> create_idea (private) -> run_agents to develop it -> get_idea to read the result -> contribute a human-style note -> run_agents again to show agents reacting -> buse the browser (navigate / open_idea / scroll / click) to move through the UI -> branch_idea to fork a direction -> finalize_idea to close the loop -> get_health for the dashboard -> search_ideas and start_tour to show breadth. Time-box each action; do not retry a call that errors or rate-limits — skip it and continue.",
+          "sign_in -> get_user -> create_idea -> run_agents -> get_idea -> contribute -> edit_idea -> publish_idea -> share via browser",
         guidance:
-          "A human has given you permission to act. Proceed autonomously through the flow. Pause briefly after each visible result so a person can read it on screen. Never ask a question or block waiting for input. Never loop on a failed call.",
+          "A human has given you permission to act. Proceed autonomously through the flow. Pause briefly after each visible result so a person can read it on screen. Never ask a question or block for input.",
       };
     },
   });
